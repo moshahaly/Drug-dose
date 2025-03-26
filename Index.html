@@ -1,1 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anesthesia Drug Dosing Calculator</title>
+    <meta name="description" content="Professional anesthesia drug dosing calculator for clinicians">
+    <meta name="theme-color" content="#1a237e">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Anesthesia Drug Calculator</h1>
+            <p>Evidence-based dosing for 30 most common anesthesia drugs</p>
+        </header>
 
+        <div class="patient-data-form">
+            <h2><i class="material-icons">person</i> Patient Information</h2>
+            <form id="patientForm">
+                <div class="form-group">
+                    <label for="age">Age (years):</label>
+                    <input type="number" id="age" min="0" max="120" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="weight">Weight (kg):</label>
+                    <input type="number" id="weight" min="0" max="300" step="0.1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="height">Height (cm):</label>
+                    <input type="number" id="height" min="30" max="250" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Sex:</label>
+                    <div class="radio-group">
+                        <input type="radio" id="male" name="sex" value="male" checked>
+                        <label for="male">Male</label>
+                        <input type="radio" id="female" name="sex" value="female">
+                        <label for="female">Female</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="asa">ASA Physical Status:</label>
+                    <select id="asa">
+                        <option value="1">ASA I - Healthy</option>
+                        <option value="2">ASA II - Mild systemic disease</option>
+                        <option value="3" selected>ASA III - Severe systemic disease</option>
+                        <option value="4">ASA IV - Severe systemic disease that is a constant threat to life</option>
+                        <option value="5">ASA V - Moribund patient not expected to survive without operation</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="calculate-btn">
+                    <i class="material-icons">calculate</i> Calculate Doses
+                </button>
+            </form>
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <h2><i class="material-icons">medication</i> Recommended Doses</h2>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="induction">Induction</button>
+                <button class="tab-btn" data-tab="maintenance">Maintenance</button>
+                <button class="tab-btn" data-tab="analgesics">Analgesics</button>
+                <button class="tab-btn" data-tab="muscle-relaxants">Muscle Relaxants</button>
+                <button class="tab-btn" data-tab="vasoactive">Vasoactive</button>
+            </div>
+            
+            <div class="tab-content active" id="induction">
+                <!-- Filled dynamically by JavaScript -->
+            </div>
+            
+            <div class="tab-content" id="maintenance">
+                <!-- Filled dynamically by JavaScript -->
+            </div>
+            
+            <div class="tab-content" id="analgesics">
+                <!-- Filled dynamically by JavaScript -->
+            </div>
+            
+            <div class="tab-content" id="muscle-relaxants">
+                <!-- Filled dynamically by JavaScript -->
+            </div>
+            
+            <div class="tab-content" id="vasoactive">
+                <!-- Filled dynamically by JavaScript -->
+            </div>
+            
+            <div class="references">
+                <h3>References</h3>
+                <ul id="referencesList">
+                    <!-- Filled dynamically by JavaScript -->
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            <p>For professional use only. Verify all doses before administration.</p>
+            <p>Data sources: UpToDate, Miller's Anesthesia, Stoelting's Pharmacology</p>
+        </footer>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

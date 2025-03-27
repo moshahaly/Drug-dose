@@ -1,114 +1,280 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anesthesia Drug Dosing Calculator</title>
-    <meta name="description" content="Professional anesthesia drug dosing calculator for clinicians">
-    <meta name="theme-color" content="#1a237e">
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Anesthesia Drug Calculator</h1>
-            <p>Evidence-based dosing for 30 most common anesthesia drugs</p>
-        </header>
+// Enhanced drug database with more complete examples
+const drugDatabase = {
+    induction: [
+        {
+            name: "Propofol",
+            category: "Induction",
+            inductionDose: (weight, age, asa) => {
+                if (asa >= 4) return `${Math.round(weight * 0.5)}-${Math.round(weight * 1)} mg (0.5-1 mg/kg)`;
+                if (age > 65) return `${Math.round(weight * 1)}-${Math.round(weight * 1.5)} mg (1-1.5 mg/kg)`;
+                return `${Math.round(weight * 1.5)}-${Math.round(weight * 2.5)} mg (1.5-2.5 mg/kg)`;
+            },
+            maintenanceDose: (weight) => `${Math.round(weight * 4)}-${Math.round(weight * 12)} mg/kg/hr (4-12 mg/kg/hr)`,
+            preparation: "Typically supplied as 10 mg/mL (1%) or 20 mg/mL (2%) solution.",
+            references: [
+                "Miller's Anesthesia, 9th ed."
+            ]
+        },
+        {
+            name: "Thiopental",
+            category: "Induction",
+            inductionDose: (weight) => `${Math.round(weight * 3)}-${Math.round(weight * 5)} mg (3-5 mg/kg)`,
+            preparation: "Typically supplied as 25 mg/mL (2.5%) solution.",
+            references: [
+                "Stoelting's Pharmacology & Physiology in Anesthetic Practice"
+            ]
+        }
+    ],
+    maintenance: [
+        {
+            name: "Sevoflurane",
+            category: "Maintenance",
+            mac: (age) => {
+                if (age < 1) return 3.3;
+                if (age < 5) return 2.5;
+                if (age < 40) return 2.0;
+                if (age < 60) return 1.8;
+                return 1.4;
+            },
+            maintenanceDose: function(age) {
+                const mac = this.mac(age);
+                return `1-2.5% (${(0.7 * mac).toFixed(1)}-${(1.3 * mac).toFixed(1)} MAC)`;
+            },
+            preparation: "Use vaporizer specifically designed for sevoflurane.",
+            references: [
+                "Miller's Anesthesia, 9th ed."
+            ]
+        }
+    ],
+    analgesics: [
+        {
+            name: "Fentanyl",
+            category: "Analgesic",
+            bolusDose: (weight) => `${Math.round(weight * 1)}-${Math.round(weight * 3)} mcg (1-3 mcg/kg)`,
+            infusionDose: (weight) => `${Math.round(weight * 0.5)}-${Math.round(weight * 2)} mcg/kg/hr (0.5-2 mcg/kg/hr)`,
+            preparation: "Dilute for infusion: 10-20 mcg/mL in NS or D5W.",
+            references: [
+                "Stoelting's Pharmacology & Physiology in Anesthetic Practice"
+            ]
+        }
+    ],
+    muscleRelaxants: [
+        {
+            name: "Rocuronium",
+            category: "Muscle Relaxant",
+            inductionDose: (weight) => `${Math.round(weight * 0.6)} mg (0.6 mg/kg)`,
+            infusionDose: (weight) => `${Math.round(weight * 0.3)}-${Math.round(weight * 0.6)} mg/kg/hr (5-10 mcg/kg/min)`,
+            preparation: "For bolus: undiluted (10 mg/mL). For infusion: dilute to 0.5-1 mg/mL.",
+            references: [
+                "Miller's Anesthesia, 9th ed."
+            ]
+        }
+    ],
+    vasoactive: [
+        {
+            name: "Phenylephrine",
+            category: "Vasoactive",
+            bolusDose: (weight) => `${Math.round(weight * 0.5)}-${Math.round(weight * 2)} mcg (0.5-2 mcg/kg)`,
+            infusionDose: (weight) => `${Math.round(weight * 0.1)}-${Math.round(weight * 0.5)} mcg/kg/min`,
+            preparation: "For infusion: typically dilute 10 mg in 250 mL NS (40 mcg/mL).",
+            references: [
+                "Stoelting's Pharmacology & Physiology in Anesthetic Practice"
+            ]
+        }
+    ]
+};
 
-        <div class="patient-data-form">
-            <h2><i class="material-icons">person</i> Patient Information</h2>
-            <form id="patientForm">
-                <div class="form-group">
-                    <label for="age">Age (years):</label>
-                    <input type="number" id="age" min="0" max="120" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="weight">Weight (kg):</label>
-                    <input type="number" id="weight" min="0" max="300" step="0.1" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="height">Height (cm):</label>
-                    <input type="number" id="height" min="30" max="250" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Sex:</label>
-                    <div class="radio-group">
-                        <input type="radio" id="male" name="sex" value="male" checked>
-                        <label for="male">Male</label>
-                        <input type="radio" id="female" name="sex" value="female">
-                        <label for="female">Female</label>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="asa">ASA Physical Status:</label>
-                    <select id="asa">
-                        <option value="1">ASA I - Healthy</option>
-                        <option value="2">ASA II - Mild systemic disease</option>
-                        <option value="3" selected>ASA III - Severe systemic disease</option>
-                        <option value="4">ASA IV - Severe systemic disease that is a constant threat to life</option>
-                        <option value="5">ASA V - Moribund patient not expected to survive without operation</option>
-                    </select>
-                </div>
-                
-                <button type="submit" class="calculate-btn">
-                    <i class="material-icons">calculate</i> Calculate Doses
-                </button>
-            </form>
-        </div>
+// DOM elements
+const patientForm = document.getElementById('patientForm');
+const resultsSection = document.getElementById('resultsSection');
+const toast = document.getElementById('toast');
 
-        <div class="results-section" id="resultsSection" style="display: none;">
-            <h2><i class="material-icons">medication</i> Recommended Doses</h2>
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="induction">Induction</button>
-                <button class="tab-btn" data-tab="maintenance">Maintenance</button>
-                <button class="tab-btn" data-tab="analgesics">Analgesics</button>
-                <button class="tab-btn" data-tab="muscle-relaxants">Muscle Relaxants</button>
-                <button class="tab-btn" data-tab="vasoactive">Vasoactive</button>
-            </div>
-            
-            <div class="tab-content active" id="induction">
-                <!-- Filled dynamically by JavaScript -->
-            </div>
-            
-            <div class="tab-content" id="maintenance">
-                <!-- Filled dynamically by JavaScript -->
-            </div>
-            
-            <div class="tab-content" id="analgesics">
-                <!-- Filled dynamically by JavaScript -->
-            </div>
-            
-            <div class="tab-content" id="muscle-relaxants">
-                <!-- Filled dynamically by JavaScript -->
-            </div>
-            
-            <div class="tab-content" id="vasoactive">
-                <!-- Filled dynamically by JavaScript -->
-            </div>
-            
-            <div class="references">
-                <h3>References</h3>
-                <ul id="referencesList">
-                    <!-- Filled dynamically by JavaScript -->
-                </ul>
-            </div>
-        </div>
+// Tab functionality
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Remove active class from all buttons and content
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        // Add active class to clicked button and corresponding content
+        btn.classList.add('active');
+        const tabId = btn.getAttribute('data-tab');
+        document.getElementById(tabId).classList.add('active');
+    });
+});
 
-        <footer>
-            <p>For professional use only. Verify all doses before administration.</p>
-            <p>Data sources: UpToDate, Miller's Anesthesia, Stoelting's Pharmacology</p>
-        </footer>
-    </div>
+// Calculate doses - FIXED FUNCTION
+function calculateDoses(category, age, weight, height, sex, asa, bmi) {
+    const tabContent = document.getElementById(category);
+    tabContent.innerHTML = '<p>Loading doses...</p>';
+    
+    // Get drugs for this category - FIXED CATEGORY NAME
+    const categoryKey = category.replace('-', '');
+    const drugs = drugDatabase[categoryKey];
+    
+    if (!drugs || drugs.length === 0) {
+        tabContent.innerHTML = '<p>No drugs available in this category.</p>';
+        return;
+    }
+    
+    // Create drug cards
+    let drugCardsHTML = '';
+    drugs.forEach(drug => {
+        let dosesHTML = '';
+        
+        // Add doses based on what's available for the drug
+        if (drug.inductionDose) {
+            dosesHTML += `
+                <div class="dose-item">
+                    <h4>Induction Dose</h4>
+                    <p class="dose-value">${typeof drug.inductionDose === 'function' ? drug.inductionDose(weight, age, asa) : drug.inductionDose}</p>
+                </div>
+            `;
+        }
+        
+        if (drug.maintenanceDose) {
+            dosesHTML += `
+                <div class="dose-item">
+                    <h4>Maintenance Dose</h4>
+                    <p class="dose-value">${typeof drug.maintenanceDose === 'function' ? drug.maintenanceDose(weight, age) : drug.maintenanceDose}</p>
+                </div>
+            `;
+        }
+        
+        if (drug.bolusDose) {
+            dosesHTML += `
+                <div class="dose-item">
+                    <h4>Bolus Dose</h4>
+                    <p class="dose-value">${typeof drug.bolusDose === 'function' ? drug.bolusDose(weight) : drug.bolusDose}</p>
+                </div>
+            `;
+        }
+        
+        if (drug.infusionDose) {
+            dosesHTML += `
+                <div class="dose-item">
+                    <h4>Infusion Rate</h4>
+                    <p class="dose-value">${typeof drug.infusionDose === 'function' ? drug.infusionDose(weight) : drug.infusionDose}</p>
+                </div>
+            `;
+        }
+        
+        if (drug.mac) {
+            dosesHTML += `
+                <div class="dose-item">
+                    <h4>MAC Value</h4>
+                    <p class="dose-value">${typeof drug.mac === 'function' ? drug.mac(age).toFixed(1) : drug.mac} (age-adjusted)</p>
+                </div>
+            `;
+        }
+        
+        let preparationHTML = '';
+        if (drug.preparation) {
+            preparationHTML = `
+                <div class="preparation">
+                    <h4>Preparation</h4>
+                    <p>${drug.preparation}</p>
+                </div>
+            `;
+        }
+        
+        drugCardsHTML += `
+            <div class="drug-card">
+                <h3><i class="material-icons">medication</i> ${drug.name}</h3>
+                <div class="dose-info">${dosesHTML}</div>
+                ${preparationHTML}
+            </div>
+        `;
+    });
+    
+    tabContent.innerHTML = drugCardsHTML;
+    updateReferences(drugs);
+}
 
-    <div class="toast" id="toast"></div>
+// Form submission handler - FIXED
+patientForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Get patient data
+    const age = parseInt(document.getElementById('age').value);
+    const weight = parseFloat(document.getElementById('weight').value);
+    const height = parseInt(document.getElementById('height').value);
+    const sex = document.querySelector('input[name="sex"]:checked').value;
+    const asa = parseInt(document.getElementById('asa').value);
+    
+    // Validate input
+    if (isNaN(weight) || isNaN(age) || isNaN(height) || weight <= 0 || age < 0 || height <= 0) {
+        showToast('Please enter valid patient data', 'error');
+        return;
+    }
+    
+    // Calculate BMI
+    const heightInMeters = height / 100;
+    const bmi = weight / (heightInMeters * heightInMeters);
+    
+    // Calculate doses for each category
+    calculateDoses('induction', age, weight, height, sex, asa, bmi);
+    calculateDoses('maintenance', age, weight, height, sex, asa, bmi);
+    calculateDoses('analgesics', age, weight, height, sex, asa, bmi);
+    calculateDoses('muscle-relaxants', age, weight, height, sex, asa, bmi);
+    calculateDoses('vasoactive', age, weight, height, sex, asa, bmi);
+    
+    // Show results section
+    resultsSection.style.display = 'block';
+    window.scrollTo({
+        top: resultsSection.offsetTop,
+        behavior: 'smooth'
+    });
+    
+    showToast('Doses calculated successfully', 'success');
+});
 
-    <script src="app.js"></script>
-</body>
-</html>
+// Rest of the code remains the same...
+function updateReferences(drugs) {
+    const referencesList = document.getElementById('referencesList');
+    const uniqueRefs = new Set();
+    
+    drugs.forEach(drug => {
+        if (drug.references) {
+            drug.references.forEach(ref => uniqueRefs.add(ref));
+        }
+    });
+    
+    referencesList.innerHTML = '';
+    uniqueRefs.forEach(ref => {
+        const li = document.createElement('li');
+        li.textContent = ref;
+        referencesList.appendChild(li);
+    });
+}
+
+function showToast(message, type) {
+    toast.textContent = message;
+    toast.className = 'toast';
+    if (type) toast.classList.add(type);
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(registration => {
+                console.log('ServiceWorker registered');
+            })
+            .catch(err => {
+                console.log('ServiceWorker registration failed: ', err);
+            });
+    });
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showToast('This app can be installed to your home screen', 'info');
+});
